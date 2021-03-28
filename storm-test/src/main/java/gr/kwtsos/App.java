@@ -1,6 +1,5 @@
 package gr.kwtsos;
 
-import org.apache.commons.lang.ObjectUtils.Null;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.topology.InputDeclarer;
@@ -10,10 +9,9 @@ public class App {
     public static void main(String[] args){
 
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("IntegerSpout", new IntegerSpout());
+        builder.setSpout("IntegerSpout", new CSVSpout());
         InputDeclarer declarer = builder.setBolt("MultiplierBolt", new MultiplierBolt());
         declarer.shuffleGrouping("IntegerSpout");
-        
 
         Config config = new Config();
         //config.setDebug(true);
