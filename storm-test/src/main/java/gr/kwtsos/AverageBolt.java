@@ -30,7 +30,6 @@ public class AverageBolt extends BaseBasicBolt {
         ++num;
         sum += tuple.getInteger(0);
         double avg = ((double)sum) / num;
-        basicOutputCollector.emit(new Values(avg));
         try {
             fileWriter.write(Double.toString(avg) + "\n");
             fileWriter.flush();
