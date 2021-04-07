@@ -1,30 +1,27 @@
 package gr.kwtsos;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
+import org.apache.storm.thrift.TException;
 import org.apache.storm.topology.InputDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 
 public class App {
-    public static void main(String[] args){
-
+    public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("IntegerSpout", new CSVSpout());
-        InputDeclarer declarer = builder.setBolt("MultiplierBolt", new MultiplierBolt());
-        declarer.shuffleGrouping("IntegerSpout");
+        builder.setSpout("CSVSpout", new CSVSpout("OpenData.csv"));
+        InputDeclarer declarer = builder.setBolt("AverageBolt", new AverageBolt());
+        declarer.shuffleGrouping("CSVSpout");
 
-        Config config = new Config();
-        //config.setDebug(true);
+        Config conf = new Config();
+        conf.setDebug(false);
 
-        LocalCluster cluster = null;
-        try{
-            cluster = new LocalCluster();
-            cluster.submitTopology("HelloTopology", config, builder.createTopology());
+        try (LocalCluster cluster = new LocalCluster()) {
+            cluster.submitTopology("HelloTopology", conf, builder.createTopology());
             Thread.sleep(10000);
-        }catch (Exception e){
-            e.printStackTrace();
-        }finally {
-            cluster.shutdown();
         }
-    }
+   }
 }
