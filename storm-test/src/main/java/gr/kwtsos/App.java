@@ -1,5 +1,6 @@
 package gr.kwtsos;
 
+import java.beans.EventHandler;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
@@ -11,6 +12,7 @@ import org.apache.storm.topology.TopologyBuilder;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -38,6 +40,15 @@ public class App extends Application {
         VBox mainPane = new VBox();
         Scene scene = new Scene(mainPane, 500, 180);
         mainPane.getChildren().add(dataArea);
+
+        Button but1 = new Button("Start/Stop");
+        mainPane.getChildren().add(but1);
+
+        but1.setOnAction((event) -> {
+            CSVSpout.stop = !CSVSpout.stop;
+        });
+
+
         stage.setScene(scene);
         stage.show();
     }
