@@ -6,6 +6,8 @@ import org.apache.storm.topology.base.BaseBasicBolt;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 
+import javafx.scene.chart.XYChart;
+
 public class AverageBolt extends BaseBasicBolt {
     static final long serialVersionUID = 1;
     private int sum = 0;
@@ -17,6 +19,7 @@ public class AverageBolt extends BaseBasicBolt {
         sum += tuple.getInteger(0);
         double avg = ((double)sum) / num;
         App.dataArea.appendText(String.format("%.3f", avg) + "\n");
+        App.sr.getData().add(new XYChart.Data(num/5, avg));
     }
 
     @Override
