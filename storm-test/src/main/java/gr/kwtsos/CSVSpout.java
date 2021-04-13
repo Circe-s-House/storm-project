@@ -49,7 +49,7 @@ public class CSVSpout extends BaseRichSpout {
         }
     }
 
-    public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer){
+    public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
         outputFieldsDeclarer.declare(new Fields("WINDFORCEKNOT"));
     }
 }
