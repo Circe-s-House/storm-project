@@ -17,6 +17,7 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 
 public class CSVSpout extends BaseRichSpout {
+    public static boolean stop = false;
     private SpoutOutputCollector spoutOutputCollector;
     static final long serialVersionUID = 0;
     private final String filePath;
@@ -36,16 +37,16 @@ public class CSVSpout extends BaseRichSpout {
     }
 
     public void nextTuple() {
-        int result = 0;
-        try {
-            TimeUnit.MILLISECONDS.sleep(200);
-        } catch (InterruptedException ie) {}
-        try {
-            String[] row = csvParser.parseLine(fileReader.readLine());
-            result = Integer.parseInt(row[12]);
-            this.spoutOutputCollector.emit(new Values(result));
-        } catch (Exception e) {
-
+        if (!stop) {
+            int result = 0;
+            try {
+                TimeUnit.MILLISECONDS.sleep(200);
+            } catch (InterruptedException ie) {}
+            try {
+                String[] row = csvParser.parseLine(fileReader.readLine());
+                result = Integer.parseInt(row[12]);
+                this.spoutOutputCollector.emit(new Values(result));
+            } catch (Exception e) {}
         }
     }
 
