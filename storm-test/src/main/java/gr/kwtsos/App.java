@@ -66,6 +66,7 @@ public class App extends Application {
 
         chart = new LineChart<>(xAxis, yAxis);
         chart.setTitle("Average Knots: --");
+        chart.setAnimated(false);
         chart.setPrefWidth(1000);
         chart.setData(FXCollections.<XYChart.Series<String, Number>>observableArrayList());
         sr = new XYChart.Series<>();
