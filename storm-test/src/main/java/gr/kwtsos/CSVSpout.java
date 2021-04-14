@@ -40,7 +40,7 @@ public class CSVSpout extends BaseRichSpout {
         if (!stop) {
             int result = 0;
             try {
-                TimeUnit.MILLISECONDS.sleep(200);
+                TimeUnit.MILLISECONDS.sleep(1000);
             } catch (InterruptedException ie) {}
             try {
                 String[] row = csvParser.parseLine(fileReader.readLine());

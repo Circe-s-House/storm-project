@@ -22,8 +22,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class App extends Application {
-    public static TextArea dataArea = new TextArea();
-    public static XYChart.Series<Number, Number>  sr = new XYChart.Series<>();
+    public static TextArea dataArea;
+    public static LineChart<Number, Number> chart;
+    public static XYChart.Series<Number, Number>  sr;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("CSVSpout", new CSVSpout("OpenData.csv"));
@@ -46,6 +47,7 @@ public class App extends Application {
 
         VBox mainVPane = new VBox();
         Button but1 = new Button("Toggle spout");
+        dataArea = new TextArea();
         mainVPane.getChildren().add(dataArea);
         mainVPane.getChildren().add(but1);
 
@@ -56,9 +58,10 @@ public class App extends Application {
         NumberAxis y = new NumberAxis();
         y.setLabel("Knots");
 
-        LineChart<Number, Number> chart = new LineChart<>(x, y);
-        chart.setTitle("Average Knots");
+        chart = new LineChart<>(x, y);
+        chart.setTitle("Average Knots: --");
         chart.setData(FXCollections.<XYChart.Series<Number, Number>>observableArrayList());
+        sr = new XYChart.Series<>();
         chart.getData().add(sr);
 
         mainPane.getChildren().add(chart);

@@ -16,15 +16,17 @@ public class AverageBolt extends BaseBasicBolt {
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
+        int input = tuple.getInteger(0);
         ++num;
-        sum += tuple.getInteger(0);
+        sum += input;
         double avg = ((double)sum) / num;
         new Thread(new Runnable() {
             @Override public void run() {
                 Platform.runLater(new Runnable() {
                     @Override public void run() {
-                        App.dataArea.appendText(String.format("%.3f", avg) + "\n");
-                        App.sr.getData().add(new XYChart.Data<Number, Number>(num/5, avg));
+                        App.dataArea.appendText(input + "\n");
+                        App.sr.getData().add(new XYChart.Data<Number, Number>(num, avg));
+                        App.chart.setTitle("Average Knots: " + String.format("%.3f", avg));
                     }
                 });
             }
