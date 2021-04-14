@@ -24,9 +24,12 @@ public class AverageBolt extends BaseBasicBolt {
             @Override public void run() {
                 Platform.runLater(new Runnable() {
                     @Override public void run() {
-                        App.dataArea.appendText(input + "\n");
-                        App.sr.getData().add(new XYChart.Data<Number, Number>(num, avg));
+                        App.dataArea.appendText(String.format("%2s", input) + "\n");
                         App.chart.setTitle("Average Knots: " + String.format("%.3f", avg));
+                        if (num > 20) {
+                            App.sr.getData().remove(0);
+                        }
+                        App.sr.getData().add(new XYChart.Data<String, Number>("" + num, avg));
                     }
                 });
             }

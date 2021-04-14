@@ -11,7 +11,9 @@ import org.apache.storm.topology.TopologyBuilder;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
@@ -23,8 +25,8 @@ import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea;
-    public static LineChart<Number, Number> chart;
-    public static XYChart.Series<Number, Number>  sr;
+    public static LineChart<String, Number> chart;
+    public static XYChart.Series<String, Number> sr;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("CSVSpout", new CSVSpout("OpenData.csv"));
@@ -48,19 +50,24 @@ public class App extends Application {
         VBox mainVPane = new VBox();
         Button but1 = new Button("Toggle spout");
         dataArea = new TextArea();
+        dataArea.setMaxWidth(100);
+        dataArea.setMaxHeight(500);
         mainVPane.getChildren().add(dataArea);
         mainVPane.getChildren().add(but1);
 
         mainPane.getChildren().add(mainVPane);
 
-        NumberAxis x = new NumberAxis();
-        x.setLabel("Time (sec)");
-        NumberAxis y = new NumberAxis();
-        y.setLabel("Knots");
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Time (sec)");
+        xAxis.setAnimated(false);
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Knots");
+        yAxis.setAnimated(false);
 
-        chart = new LineChart<>(x, y);
+        chart = new LineChart<>(xAxis, yAxis);
         chart.setTitle("Average Knots: --");
-        chart.setData(FXCollections.<XYChart.Series<Number, Number>>observableArrayList());
+        chart.setPrefWidth(1000);
+        chart.setData(FXCollections.<XYChart.Series<String, Number>>observableArrayList());
         sr = new XYChart.Series<>();
         chart.getData().add(sr);
 
