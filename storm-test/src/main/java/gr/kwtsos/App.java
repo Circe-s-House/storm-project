@@ -10,6 +10,7 @@ import org.apache.storm.topology.InputDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
 import javafx.scene.Scene;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
@@ -22,7 +23,7 @@ import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea = new TextArea();
-    public static XYChart.Series sr = new XYChart.Series();
+    public static XYChart.Series<Number, Number>  sr = new XYChart.Series<>();
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("CSVSpout", new CSVSpout("OpenData.csv"));
@@ -44,7 +45,7 @@ public class App extends Application {
         HBox mainPane = new HBox();
 
         VBox mainVPane = new VBox();
-        Button but1 = new Button("Start/Stop");
+        Button but1 = new Button("Toggle spout");
         mainVPane.getChildren().add(dataArea);
         mainVPane.getChildren().add(but1);
 
@@ -54,12 +55,15 @@ public class App extends Application {
         x.setLabel("Time (sec)");
         NumberAxis y = new NumberAxis();
         y.setLabel("Knots");
-        LineChart chart = new LineChart(x, y);
+
+        LineChart<Number, Number> chart = new LineChart<>(x, y);
         chart.setTitle("Average Knots");
-        
+        chart.setData(FXCollections.<XYChart.Series<Number, Number>>observableArrayList());
+        chart.getData().add(sr);
+
         mainPane.getChildren().add(chart);
 
-        Scene scene = new Scene(mainPane, 500, 180);
+        Scene scene = new Scene(mainPane, 1200, 500);
         but1.setOnAction((event) -> {
             CSVSpout.stop = !CSVSpout.stop;
         });
