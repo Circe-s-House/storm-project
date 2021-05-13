@@ -1,4 +1,4 @@
-package gr.kwtsos;
+package storm_project;
 
 import org.apache.storm.topology.BasicOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -7,29 +7,20 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 
 import javafx.application.Platform;
-import javafx.scene.chart.XYChart;
 
 public class AverageBolt extends BaseBasicBolt {
     static final long serialVersionUID = 1;
-    private int sum = 0;
-    private int num = 0;
 
     @Override
     public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
-        int input = tuple.getInteger(0);
-        ++num;
-        sum += input;
-        double avg = ((double)sum) / num;
+        String site = tuple.getStringByField("site");
+        int temperature = tuple.getIntegerByField("temperature");
+        int humidity = tuple.getIntegerByField("humidity");
         new Thread(new Runnable() {
             @Override public void run() {
                 Platform.runLater(new Runnable() {
                     @Override public void run() {
-                        App.dataArea.appendText(String.format("%2s", input) + "\n");
-                        App.chart.setTitle("Average Knots: " + String.format("%.3f", avg));
-                        if (num > 20) {
-                            App.sr.getData().remove(0);
-                        }
-                        App.sr.getData().add(new XYChart.Data<String, Number>("" + num, avg));
+                        App.dataArea.appendText(String.format("%s, %d, %d\n", site, temperature, humidity));
                     }
                 });
             }

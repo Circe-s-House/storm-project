@@ -1,4 +1,4 @@
-package gr.kwtsos;
+package storm_project;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -17,7 +17,6 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 
 public class CSVSpout extends BaseRichSpout {
-    public static boolean stop = false;
     private SpoutOutputCollector spoutOutputCollector;
     static final long serialVersionUID = 0;
     private final String filePath;
@@ -30,27 +29,26 @@ public class CSVSpout extends BaseRichSpout {
 
     public void open(Map conf, TopologyContext TopologyContext, SpoutOutputCollector spoutOutputCollector){
         this.spoutOutputCollector = spoutOutputCollector;
-        csvParser = new CSVParserBuilder().withSeparator(';').build();
+        csvParser = new CSVParserBuilder().withSeparator(',').build();
         try {
             fileReader = new BufferedReader(new FileReader(filePath));
         } catch (IOException e) {};
     }
 
     public void nextTuple() {
-        if (!stop) {
-            int result = 0;
-            try {
-                TimeUnit.MILLISECONDS.sleep(1000);
-            } catch (InterruptedException ie) {}
-            try {
-                String[] row = csvParser.parseLine(fileReader.readLine());
-                result = Integer.parseInt(row[12]);
-                this.spoutOutputCollector.emit(new Values(result));
-            } catch (Exception e) {}
-        }
+        try {
+            TimeUnit.MILLISECONDS.sleep(1000);
+        } catch (InterruptedException ie) {}
+        try {
+            String[] row = csvParser.parseLine(fileReader.readLine());
+            String site = row[0];
+            int temperature = Integer.parseInt(row[1]);
+            int humidity = Integer.parseInt(row[2]);
+            this.spoutOutputCollector.emit(new Values(site, temperature, humidity));
+        } catch (Exception e) {}
     }
 
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("WINDFORCEKNOT"));
+        outputFieldsDeclarer.declare(new Fields("site", "temperature", "humidity"));
     }
 }
