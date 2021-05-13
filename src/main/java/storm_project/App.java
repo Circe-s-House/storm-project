@@ -25,9 +25,9 @@ public class App extends Application {
     public static XYChart.Series<String, Number> sr;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
-        builder.setSpout("meteoSpout", new CSVSpout("meteo.csv"));
-        builder.setSpout("okairosSpout", new CSVSpout("okairos.csv"));
-        builder.setSpout("k24Spout", new CSVSpout("k24.csv"));
+        builder.setSpout("meteoSpout", new CSVSpout("data/meteo.csv"));
+        builder.setSpout("okairosSpout", new CSVSpout("data/okairos.csv"));
+        builder.setSpout("k24Spout", new CSVSpout("data/k24.csv"));
         InputDeclarer declarer = builder.setBolt("AverageBolt", new AverageBolt());
         declarer.shuffleGrouping("meteoSpout");
         declarer.shuffleGrouping("okairosSpout");
@@ -50,6 +50,7 @@ public class App extends Application {
         VBox mainVPane = new VBox();
         Button but1 = new Button("Scrape meteo.gr");
         Button but2 = new Button("Scrape okairos.gr");
+        Button but3 = new Button("Scrape k24.gr");
         dataArea = new TextArea();
         dataArea.setMaxWidth(300);
         dataArea.setMaxHeight(1200);
@@ -60,12 +61,17 @@ public class App extends Application {
         Scene scene = new Scene(mainPane, 1200, 500);
         but1.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider meteo_spider.py -t csv -o meteo.csv");
+                Runtime.getRuntime().exec("scrapy runspider spiders/meteo_spider.py -t csv -o data/meteo.csv");
             } catch (IOException e) {}
         });
         but2.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider okairos_spider.py -t csv -o okairos.csv");
+                Runtime.getRuntime().exec("scrapy runspider spiders/okairos_spider.py -t csv -o data/okairos.csv");
+            } catch (IOException e) {}
+        });
+        but3.setOnAction((event) -> {
+            try {
+                Runtime.getRuntime().exec("scrapy runspider spiders/k24_spider.py -t csv -o data/k24.csv");
             } catch (IOException e) {}
         });
 

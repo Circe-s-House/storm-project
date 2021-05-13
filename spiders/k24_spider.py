@@ -5,21 +5,21 @@ class K24Spider(scrapy.Spider):
     name = "k24"
 
     def start_requests(self):
-        url = 'https://gr.k24.net/ellada/peloponnisos/kairos-tripoli-66'
+        url = 'https://gr.k24.net/ellada/peloponnisos/kairos-tripoli-66?i=1'
         yield scrapy.Request(url)
 
     def parse(self, response):
         for tr in response.css('table.weatherGrid').css('tr')[2:]:
-            humidity = tr.css("td")[7].css("span.value::text").get()
-            if not humidity:
-                humidity = tr.css("td")[6].css("span.value::text").get()
+            if len(tr.css("td").getall()) == 8:
+                i = 0
+                date = tr.css("td")[0].css("span::text").getall()[1]
+            else:
+                i = 1
             yield {
                 'Ιστοσελίδα':'k24.net',
-                #'Ημερομηνία':h3,
-                #'Ώρα':data.css('td.hour::text').get(),
-                'Θερμοκρασία':tr.css("td")[4].css("span.value::text").get(),
-                #'Μποφόρ':data.css('td.wind-speed::text').get().strip(),
-                #'Νεφοκάλυψη':data.css('td.cloudiness::text').get().strip(),
-                #'Υγρασία':data.css('td.relative-moist::text').get()[:-1],
-                'Υγρασία':humidity,
+                'Ημερομηνία':date,
+                'Ώρα':tr.css("td")[1-i].css("::text").get(),
+                'Θερμοκρασία':tr.css("td")[4-i].css("span.value::text").get(),
+                'Μποφόρ':tr.css("td")[5-i].css("span.value::text").get(),
+                'Υγρασία':tr.css("td")[7-i].css("span.value::text").get(),
             }
