@@ -42,13 +42,18 @@ public class CSVSpout extends BaseRichSpout {
         try {
             String[] row = csvParser.parseLine(fileReader.readLine());
             String site = row[0];
-            int temperature = Integer.parseInt(row[1]);
-            int humidity = Integer.parseInt(row[2]);
-            this.spoutOutputCollector.emit(new Values(site, temperature, humidity));
+            String date = row[1];
+            String time = row[2];
+            int temperature = Integer.parseInt(row[3]);
+            int knots = Integer.parseInt(row[4]);
+            int humidity = Integer.parseInt(row[5]);
+            this.spoutOutputCollector.emit(new Values(
+                site, date, time, temperature, knots, humidity));
         } catch (Exception e) {}
     }
 
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("site", "temperature", "humidity"));
+        outputFieldsDeclarer.declare(new Fields(
+            "site", "date", "time", "temperature", "knots", "humidity"));
     }
 }

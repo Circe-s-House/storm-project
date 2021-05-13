@@ -14,13 +14,18 @@ public class AverageBolt extends BaseBasicBolt {
     @Override
     public void execute(Tuple tuple, BasicOutputCollector basicOutputCollector) {
         String site = tuple.getStringByField("site");
+        String date = tuple.getStringByField("date");
+        String time = tuple.getStringByField("time");
         int temperature = tuple.getIntegerByField("temperature");
+        int knots = tuple.getIntegerByField("knots");
         int humidity = tuple.getIntegerByField("humidity");
         new Thread(new Runnable() {
             @Override public void run() {
                 Platform.runLater(new Runnable() {
                     @Override public void run() {
-                        App.dataArea.appendText(String.format("%s, %d, %d\n", site, temperature, humidity));
+                        App.dataArea.appendText(String.format(
+                            "%s, %s, %s, %d, %d, %d\n",
+                            site, date, time, temperature, knots, humidity));
                     }
                 });
             }

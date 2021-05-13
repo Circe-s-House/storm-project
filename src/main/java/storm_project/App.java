@@ -11,8 +11,6 @@ import org.apache.storm.topology.TopologyBuilder;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
@@ -21,8 +19,6 @@ import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea;
-    public static LineChart<String, Number> chart;
-    public static XYChart.Series<String, Number> sr;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("meteoSpout", new CSVSpout("data/meteo.csv"));
@@ -50,11 +46,11 @@ public class App extends Application {
         VBox mainVPane = new VBox();
         Button but1 = new Button("Scrape meteo.gr");
         Button but2 = new Button("Scrape okairos.gr");
-        Button but3 = new Button("Scrape k24.gr");
+        Button but3 = new Button("Scrape k24.net");
         dataArea = new TextArea();
         dataArea.setMaxWidth(300);
         dataArea.setMaxHeight(1200);
-        mainVPane.getChildren().addAll(dataArea, but1, but2);
+        mainVPane.getChildren().addAll(dataArea, but1, but2, but3);
 
         mainPane.getChildren().add(mainVPane);
 

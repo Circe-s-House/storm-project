@@ -1,6 +1,6 @@
-data/
+data
 spiders/__pycache__
-target/
+target
 .classpath
 .factorypath
 .project
