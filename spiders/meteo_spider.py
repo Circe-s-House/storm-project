@@ -1,5 +1,8 @@
 import scrapy
-import json
+
+months = ['ΙΑΝΟΥΑΡΙΟΥ', 'ΦΕΒΡΟΥΑΡΙΟΥ', 'ΜΑΡΤΙΟΥ', 'ΑΠΡΙΛΙΟΥ', 'ΜΑΪΟΥ', 'ΙΟΥΝΙΟΥ',
+          'ΙΟΥΛΙΟΥ', 'ΑΥΓΟΥΣΤΟΥ', 'ΣΕΠΤΕΜΒΡΙΟΥ', 'ΟΚΤΩΒΡΙΟΥ', 'ΝΟΕΜΒΡΙΟΥ',
+          'ΔΕΚΕΜΒΡΙΟΥ']
 
 class MeteoSpider(scrapy.Spider):
     name = "meteo"
@@ -9,29 +12,21 @@ class MeteoSpider(scrapy.Spider):
         yield scrapy.Request(url)
 
     def parse(self, response):
-        date = ''
         for page in response.css('table#outerTable'):
-            for td in page.css('td.temperature'):
-                temp = td.css('div.tempcolorcell::text').get()
-                humidity = td.css('div.tempcolorcell').css('div.visible-xs::text').get()[:-1]
-                #time = td.css('td.fulltime').css('td::text').get()
-                if temp:
+            for tr in page.css('tr'):
+                date_div = tr.css('td.forecastDate').css('div.flleft')
+                time_td = tr.css('td.fulltime')
+                if date_div:
+                    data_span = date_div.css('span.dayNumbercf')
+                    day = data_span.css('::text').get()
+                    month = months.index(data_span.css('span.monthNumbercf::text').get().strip())
+                    date = f'{day}/{month:02}'
+                elif time_td:
                     yield {
                         'Ιστοσελίδα':'meteo.gr',
-                        #'Ώρα':time,
-                        'Θερμοκρασία':temp,
-                        'Υγρασία':humidity
+                        'Ημερομηνία':date,
+                        'Ώρα':time_td.css('td::text').get(),
+                        'Θερμοκρασία':tr.css('div.tempcolorcell::text').get(),
+                        'Μποφόρ':tr.css('td.anemosfull').css('tr').css('td::text').get().split()[0],
+                        'Υγρασία':tr.css('td.humidity::text').get().strip()[:-1]
                     }
-
-                # check_if_date = tr.css('td.forecastDate')
-                # check_if_data = tr.css('td.fulltime')
-                # if check_if_date:
-                #     day = check_if_date.css('div.flleft::text').get()
-                # elif check_if_data:
-                #     yield {
-                #         'Ημερομηνία':day,
-                #         #'Ώρα':tr.css('td.fulltime').css('td'),
-                #         #'Θερμοκρασία':tr.css(''),
-                #         #'Υγρασία':tr.css(''),
-                #         #'Μποφόρ':tr.css(''),
-                #     }

@@ -1,3 +1,5 @@
+data/
+spiders/__pycache__
 target/
 .classpath
 .factorypath

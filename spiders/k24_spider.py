@@ -1,5 +1,4 @@
 import scrapy
-import json
 
 class K24Spider(scrapy.Spider):
     name = "k24"
