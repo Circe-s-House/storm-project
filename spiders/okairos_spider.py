@@ -1,5 +1,8 @@
 import scrapy
-import json
+
+months = ['Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου', 'Μάι', 'Ιουνίου',
+          'Ιουλίου', 'Αυγούστου', 'Σεπτεμβρίου', 'Οκτωβρίου', 'Νοεμβρίου',
+          'Δεκεμβρίου']
 
 class OkairosSpider(scrapy.Spider):
     name = "okairos"
@@ -13,12 +16,13 @@ class OkairosSpider(scrapy.Spider):
         i = 0
         while True:
             h3 = page.css('h3::text')[11+i].get()
-            # if not h3:
-            #     break
+            date = h3.split()
+            month = months.index(date[2][:-1])
+            finaldate = f'{date[1]}/{month}'
             for data in page.css('table')[i].css('tr')[1:]:
                 yield {
                     'Ιστοσελίδα':'okairos.gr',
-                    'Ημερομηνία':h3,
+                    'Ημερομηνία':finaldate,
                     'Ώρα':data.css('td.hour::text').get(),
                     'Θερμοκρασία':data.css('td.temp').css('div::text').get()[:-1],
                     'Μποφόρ':data.css('td.wind-speed::text').get().strip(),
