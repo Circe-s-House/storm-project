@@ -15,10 +15,12 @@ class OkairosSpider(scrapy.Spider):
         page = response.css('div.wnfp')
         i = 0
         while True:
-            h3 = page.css('h3::text')[11+i].get()
+            h3 = page.css('h3::text')[12+i].get()
             date = h3.split()
-            month = months.index(date[2][:-1])
-            finaldate = f'{date[1]}/{month}'
+            print('--------')
+            print(date)
+            month = months.index(date[2][:-1]) + 1
+            finaldate = f'{date[1]}/{month:02}'
             for data in page.css('table')[i].css('tr')[1:]:
                 yield {
                     'Ιστοσελίδα':'okairos.gr',

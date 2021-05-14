@@ -19,7 +19,7 @@ class MeteoSpider(scrapy.Spider):
                 if date_div:
                     data_span = date_div.css('span.dayNumbercf')
                     day = data_span.css('::text').get()
-                    month = months.index(data_span.css('span.monthNumbercf::text').get().strip())
+                    month = months.index(data_span.css('span.monthNumbercf::text').get().strip()) + 1
                     date = f'{day}/{month:02}'
                 elif time_td:
                     yield {
