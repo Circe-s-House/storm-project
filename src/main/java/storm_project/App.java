@@ -57,17 +57,17 @@ public class App extends Application {
         Scene scene = new Scene(mainPane, 1200, 500);
         but1.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider spiders/meteo_spider.py -t csv -o data/meteo.csv");
+                Runtime.getRuntime().exec("scrapy runspider spiders/meteo.py -t csv -o data/meteo.csv");
             } catch (IOException e) {}
         });
         but2.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider spiders/okairos_spider.py -t csv -o data/okairos.csv");
+                Runtime.getRuntime().exec("scrapy runspider spiders/okairos.py -t csv -o data/okairos.csv");
             } catch (IOException e) {}
         });
         but3.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider spiders/k24_spider.py -t csv -o data/k24.csv");
+                Runtime.getRuntime().exec("scrapy runspider spiders/k24.py -t csv -o data/k24.csv");
             } catch (IOException e) {}
         });
 
