@@ -21,8 +21,11 @@ public class App extends Application {
     public static TextArea dataArea;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
+
         builder.setSpout("meteoSpout", new CSVSpout("data/meteo.csv"));
+
         builder.setSpout("okairosSpout", new CSVSpout("data/okairos.csv"));
+
         builder.setSpout("k24Spout", new CSVSpout("data/k24.csv"));
         InputDeclarer declarer = builder.setBolt("AverageBolt", new AverageBolt());
         declarer.shuffleGrouping("meteoSpout");
@@ -57,17 +60,17 @@ public class App extends Application {
         Scene scene = new Scene(mainPane, 1200, 500);
         but1.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider spiders/meteo.py -t csv -o data/meteo.csv");
+                Runtime.getRuntime().exec("rm data/meteo.csv; scrapy runspider spiders/meteo.py -o data/meteo.csv");
             } catch (IOException e) {}
         });
         but2.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider spiders/okairos.py -t csv -o data/okairos.csv");
+                Runtime.getRuntime().exec("rm data/okairos.csv; scrapy runspider spiders/okairos.py -o data/okairos.csv");
             } catch (IOException e) {}
         });
         but3.setOnAction((event) -> {
             try {
-                Runtime.getRuntime().exec("scrapy runspider spiders/k24.py -t csv -o data/k24.csv");
+                Runtime.getRuntime().exec("rm data/k24.csv; scrapy runspider spiders/k24.py -o data/k24.csv");
             } catch (IOException e) {}
         });
 

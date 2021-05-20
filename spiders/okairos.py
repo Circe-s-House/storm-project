@@ -8,7 +8,7 @@ class OkairosSpider(scrapy.Spider):
     name = "okairos"
 
     def start_requests(self):
-        url = 'https://www.okairos.gr/%CF%84%CF%81%CE%AF%CF%80%CE%BF%CE%BB%CE%B7.html?v=%CF%89%CF%81%CE%B9%CE%B1%CE%AF%CE%B1'
+        url = 'https://www.okairos.gr/τρίπολη.html?v=ωριαία'
         yield scrapy.Request(url)
 
     def parse(self, response):
