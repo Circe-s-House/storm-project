@@ -19,6 +19,7 @@ public class AverageBolt extends BaseBasicBolt {
         int temperature = tuple.getIntegerByField("temperature");
         int knots = tuple.getIntegerByField("knots");
         int humidity = tuple.getIntegerByField("humidity");
+
         new Thread(new Runnable() {
             @Override public void run() {
                 Platform.runLater(new Runnable() {
