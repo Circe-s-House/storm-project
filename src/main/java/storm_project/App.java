@@ -11,7 +11,7 @@ import org.apache.storm.topology.InputDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 
 import javafx.application.Application;
-import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TableView;
@@ -25,9 +25,11 @@ public class App extends Application {
     public static TextArea dataArea;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
+        runCmd("mkdir data");
+        runCmd("touch data/k24.csv data/meteo.csv data/okairos.csv");
+        builder.setSpout("k24Spout", new CSVSpout("data/k24.csv"));
         builder.setSpout("meteoSpout", new CSVSpout("data/meteo.csv"));
         builder.setSpout("okairosSpout", new CSVSpout("data/okairos.csv"));
-        builder.setSpout("k24Spout", new CSVSpout("data/k24.csv"));
         InputDeclarer declarer = builder.setBolt("AverageBolt", new AverageBolt());
         declarer.shuffleGrouping("meteoSpout");
         declarer.shuffleGrouping("okairosSpout");
@@ -45,14 +47,13 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        makeThread("k24", 5).start();
-        makeThread("meteo", 10).start();
-        makeThread("okairos", 15).start();
+        makeThread("k24", 3).start();
+        makeThread("meteo", 3).start();
+        makeThread("okairos", 1).start();
 
         BorderPane mainPane = new BorderPane();
 
         VBox mainVPane = new VBox();
-
         dataArea = new TextArea();
         dataArea.setMaxWidth(300);
         dataArea.setMaxHeight(1200);
@@ -77,48 +78,43 @@ public class App extends Application {
         mainPane.setCenter(tableView);
 
         Scene scene = new Scene(mainPane, 1200, 500);
-        but1.setOnAction((event) -> {
-            try {
-                Runtime.getRuntime().exec("rm data/meteo.csv; scrapy runspider spiders/meteo.py -o data/meteo.csv");
-            } catch (IOException e) {}
-        });
-        but2.setOnAction((event) -> {
-            try {
-                Runtime.getRuntime().exec("rm data/okairos.csv; scrapy runspider spiders/okairos.py -o data/okairos.csv");
-            } catch (IOException e) {}
-        });
-        but3.setOnAction((event) -> {
-            try {
-                Runtime.getRuntime().exec("rm data/k24.csv; scrapy runspider spiders/k24.py -o data/k24.csv");
-            } catch (IOException e) {}
-        });
+        but1.setOnAction((event) -> { runSpider("k24"); });
+        but2.setOnAction((event) -> { runSpider("meteo"); });
+        but3.setOnAction((event) -> { runSpider("okairos"); });
 
         stage.setScene(scene);
         stage.show();
     }
 
     @Override
-    public void stop() { System.exit(0); }
+    public void stop() {
+        try {
+            Runtime.getRuntime().exec("rm -rf data");
+        } catch (IOException e) {}
+        System.exit(0);
+    }
+
+    public static void runCmd(String cmd) {
+        try {
+            Runtime.getRuntime().exec(cmd);
+        } catch (IOException e) {}
+    }
+
+    public static void runSpider(String site) {
+        runCmd("dd if=/dev/null of=data/" + site + ".csv");
+        runCmd("scrapy runspider spiders/" + site + ".py -o data/" + site + ".csv");
+    }
 
     public static Thread makeThread(String site, int delay) {
-        return new Thread(new Runnable() {
-            @Override public void run() {
-                Platform.runLater(() -> new Runnable() {
-                    @Override public void run() {
-                        System.out.println("MIA PRINT");
-                        while (true) {
-                            try {
-                                Runtime.getRuntime().exec("rm -f data/" + site + ".csv");
-                                Runtime.getRuntime().exec("scrapy runspider spiders/" + site + ".py -o data/" + site + ".csv");
-                                TimeUnit.SECONDS.sleep(delay);
-                            } catch (IOException|InterruptedException e) {
-                                System.out.println(e.getMessage());
-                            }
-                            System.out.println(site);
-                        }
-                    }
-                });
-            }
+        return new Thread(new Task<Void>() {
+            @Override public Void call() {
+                while (true) {
+                    runSpider(site);
+                    try {
+                        TimeUnit.HOURS.sleep(delay);
+                    } catch (InterruptedException e) {}
+                }
+            };
         });
     }
 }

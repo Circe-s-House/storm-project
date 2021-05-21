@@ -37,9 +37,6 @@ public class CSVSpout extends BaseRichSpout {
 
     public void nextTuple() {
         try {
-            TimeUnit.MILLISECONDS.sleep(1000);
-        } catch (InterruptedException ie) {}
-        try {
             String[] row = csvParser.parseLine(fileReader.readLine());
             String site = row[0];
             String date = row[1];
