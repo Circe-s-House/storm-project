@@ -2,6 +2,7 @@ package storm_project;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
@@ -10,6 +11,7 @@ import org.apache.storm.topology.InputDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
@@ -21,11 +23,8 @@ public class App extends Application {
     public static TextArea dataArea;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
-
         builder.setSpout("meteoSpout", new CSVSpout("data/meteo.csv"));
-
         builder.setSpout("okairosSpout", new CSVSpout("data/okairos.csv"));
-
         builder.setSpout("k24Spout", new CSVSpout("data/k24.csv"));
         InputDeclarer declarer = builder.setBolt("AverageBolt", new AverageBolt());
         declarer.shuffleGrouping("meteoSpout");
@@ -44,6 +43,10 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
+        makeThread("k24", 5).start();
+        makeThread("meteo", 10).start();
+        makeThread("okairos", 15).start();
+
         HBox mainPane = new HBox();
 
         VBox mainVPane = new VBox();
@@ -80,4 +83,26 @@ public class App extends Application {
 
     @Override
     public void stop() { System.exit(0); }
+
+    public static Thread makeThread(String site, int delay) {
+        return new Thread(new Runnable() {
+            @Override public void run() {
+                Platform.runLater(() -> new Runnable() {
+                    @Override public void run() {
+                        System.out.println("MIA PRINT");
+                        while (true) {
+                            try {
+                                Runtime.getRuntime().exec("rm -f data/" + site + ".csv");
+                                Runtime.getRuntime().exec("scrapy runspider spiders/" + site + ".py -o data/" + site + ".csv");
+                                TimeUnit.SECONDS.sleep(delay);
+                            } catch (IOException|InterruptedException e) {
+                                System.out.println(e.getMessage());
+                            }
+                            System.out.println(site);
+                        }
+                    }
+                });
+            }
+        });
+    }
 }
