@@ -43,14 +43,21 @@ public class AverageBolt extends BaseBasicBolt {
         }
 
         final long unixTime = unixDate.getTime();
+        if (site.equals("k24.net")) {
+            k24Table.put(unixTime, tuple);
+        } else if (site.equals("meteo.gr")) {
+            meteoTable.put(unixTime, tuple);
+        } else if (site.equals("okairos.gr")) {
+            okairosTable.put(unixTime, tuple);
+        }
 
         new Thread(new Runnable() {
             @Override public void run() {
                 Platform.runLater(new Runnable() {
                     @Override public void run() {
                         App.dataArea.appendText(String.format(
-                            "%d, %s, %s, %s, %d, %d, %d\n",
-                            unixTime, site, date, time, temperature, knots, humidity));
+                            "%s, %s, %s, %d, %d, %d\n",
+                            site, date, time, temperature, knots, humidity));
                     }
                 });
             }
