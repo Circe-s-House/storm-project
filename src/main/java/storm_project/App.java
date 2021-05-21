@@ -2,6 +2,8 @@ package storm_project;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -19,10 +21,10 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -30,7 +32,10 @@ import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea;
-    private static TableView tableView;
+    public static ObservableMap<Long, Tuple> k24Map;
+    public static ObservableMap<Long, Tuple> meteoMap;
+    public static ObservableMap<Long, Tuple> okairosMap;
+    private static TableView<String> table;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         runCmd("mkdir data");
@@ -80,17 +85,14 @@ public class App extends Application {
         msgArea.setMaxWidth(300);
         mainVPane.getChildren().addAll(dataArea, buttonPane,msgArea);
 
-        tableView = new TableView();
-
-        tableView.getColumns().add(new TableColumn<>("Time"));
-        tableView.getColumns().add(new TableColumn<>("k24.net"));
-        tableView.getColumns().add(new TableColumn<>("meteo.gr"));
-        tableView.getColumns().add(new TableColumn<>("okairos.gr"));
-
-        
-
         mainPane.setLeft(mainVPane);
-        mainPane.setCenter(tableView);
+
+        table = new TableView<>();
+        table.getColumns().add(new TableColumn<String, String>("time"));
+        table.getColumns().add(new TableColumn<String, String>("k24"));
+        table.getColumns().add(new TableColumn<String, String>("meteo"));
+        table.getColumns().add(new TableColumn<String, String>("okairos"));
+        mainPane.setCenter(table);
 
         Scene scene = new Scene(mainPane, 1200, 500);
         but1.setOnAction((event) -> { runSpider("k24"); });
@@ -100,9 +102,9 @@ public class App extends Application {
         stage.setScene(scene);
         stage.show();
 
-        ObservableMap<Long, Tuple> k24Map = makeMap(AverageBolt.k24Table, 1);
-        ObservableMap<Long, Tuple> meteoMap = makeMap(AverageBolt.meteoTable, 2);
-        ObservableMap<Long, Tuple> okairosMap = makeMap(AverageBolt.okairosTable, 3);
+        k24Map = makeMap(52);
+        meteoMap = makeMap(44);
+        okairosMap = makeMap(252 / 3);
     }
 
     @Override
@@ -137,19 +139,42 @@ public class App extends Application {
         });
     }
 
-    public static ObservableMap<Long, Tuple> makeMap(Map<Long, Tuple> bind, int index) {
-        ObservableMap<Long, Tuple> map = FXCollections.observableMap(AverageBolt.okairosTable);
-        map.addListener(new MapChangeListener<Long, Tuple>() {
+    public static ObservableMap<Long, Tuple> makeMap(int size) {
+        Map<Long, Tuple> map = Collections.synchronizedMap(
+            new LinkedHashMap<Long, Tuple>() {
+                @Override
+                protected boolean removeEldestEntry(final Map.Entry<Long, Tuple> eldest) {
+                    return size() > size;
+                }
+            }
+        );
+        ObservableMap<Long, Tuple> observableMap = FXCollections.observableMap(map);
+        observableMap.addListener(new MapChangeListener<Long, Tuple>() {
             @Override
             public void onChanged(MapChangeListener.Change<? extends Long, ? extends Tuple> change) {
-                if(change.wasAdded()) {
-                    Tuple tuple = change.getValueAdded();
-                    tableView.getItems().add(index, tuple.getStringByField("time"));
-                } else if(change.wasRemoved()) {
-                    tableView.getItems().remove(change.getValueRemoved());
+                if(change.wasAdded() || change.wasRemoved()) {
+                    table.getItems().clear();
+                    for (Map.Entry<Long, Tuple> entry : k24Map.entrySet()) {
+                        long key = entry.getKey();
+                        String datetime = entry.getValue().getStringByField("date");
+                        datetime += " " + entry.getValue().getStringByField("time");
+
+                        //table.getItems().add(datetime, "-", "-", "-");
+                        // table.getItems().add(entry.getValue().getIntegerByField("temperature").toString());
+                        // if (meteoMap.containsKey(key)) {
+                        //     table.getItems().add(meteoMap.get(key).getIntegerByField("temperature").toString());
+                        // } else {
+                        //     table.getItems().add("-");
+                        // }
+                        // if (okairosMap.containsKey(key)) {
+                        //     table.getItems().add(okairosMap.get(key).getIntegerByField("temperature").toString());
+                        // } else {
+                        //     table.getItems().add("-");
+                        // }
+                    }
                 }
             }
         });
-        return map;
+        return observableMap;
     }
 }
