@@ -14,7 +14,9 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -47,18 +49,32 @@ public class App extends Application {
         makeThread("meteo", 10).start();
         makeThread("okairos", 15).start();
 
-        HBox mainPane = new HBox();
+        BorderPane mainPane = new BorderPane();
 
         VBox mainVPane = new VBox();
-        Button but1 = new Button("Scrape meteo.gr");
-        Button but2 = new Button("Scrape okairos.gr");
-        Button but3 = new Button("Scrape k24.net");
+
         dataArea = new TextArea();
         dataArea.setMaxWidth(300);
         dataArea.setMaxHeight(1200);
-        mainVPane.getChildren().addAll(dataArea, but1, but2, but3);
+        Button but1 = new Button("meteo");
+        but1.setPrefWidth(100);
+        but1.setPrefHeight(20);
+        Button but2 = new Button("okairos");
+        but2.setPrefWidth(100);
+        but2.setPrefHeight(20);
+        Button but3 = new Button("k24");
+        but3.setPrefWidth(100);
+        but3.setPrefHeight(20);
+        HBox buttonPane = new HBox();
+        buttonPane.getChildren().addAll(but1, but2, but3);
+        TextArea msgArea = new TextArea();
+        msgArea.setMaxWidth(300);
+        mainVPane.getChildren().addAll(dataArea, buttonPane,msgArea);
 
-        mainPane.getChildren().add(mainVPane);
+        TableView tableView = new TableView();
+
+        mainPane.setLeft(mainVPane);
+        mainPane.setCenter(tableView);
 
         Scene scene = new Scene(mainPane, 1200, 500);
         but1.setOnAction((event) -> {
