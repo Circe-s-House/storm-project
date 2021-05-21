@@ -2,6 +2,7 @@ package storm_project;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.storm.Config;
@@ -9,8 +10,12 @@ import org.apache.storm.LocalCluster;
 import org.apache.storm.thrift.TException;
 import org.apache.storm.topology.InputDeclarer;
 import org.apache.storm.topology.TopologyBuilder;
+import org.apache.storm.tuple.Tuple;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
+import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -69,6 +74,10 @@ public class App extends Application {
 
         stage.setScene(scene);
         stage.show();
+
+        ObservableMap<Long, Tuple> k24Map = makeMap(AverageBolt.k24Table, null);
+        ObservableMap<Long, Tuple> meteoMap = makeMap(AverageBolt.meteoTable, null);
+        ObservableMap<Long, Tuple> okairosMap = makeMap(AverageBolt.okairosTable, null);
     }
 
     @Override
@@ -101,5 +110,20 @@ public class App extends Application {
                 }
             };
         });
+    }
+
+    public static ObservableMap<Long, Tuple> makeMap(Map<Long, Tuple> bind, TextArea to) {
+        ObservableMap<Long, Tuple> map = FXCollections.observableMap(AverageBolt.okairosTable);
+        map.addListener(new MapChangeListener<Long, Tuple>() {
+            @Override
+            public void onChanged(MapChangeListener.Change<? extends Long, ? extends Tuple> change) {
+                if(change.wasAdded()) {
+                    
+                } else if(change.wasRemoved()) {
+                    
+                }
+            }
+        });
+        return map;
     }
 }

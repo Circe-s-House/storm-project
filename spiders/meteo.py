@@ -22,11 +22,14 @@ class MeteoSpider(scrapy.Spider):
                     month = months.index(data_span.css('span.monthNumbercf::text').get().strip()) + 1
                     date = f'{day}/{month:02}'
                 elif time_td:
+                    knots = tr.css('td.anemosfull').css('tr').css('td::text').get().split()[0]
+                    if knots == "ΑΠΝΟΙΑ":
+                        knots = 0
                     yield {
                         'Ιστοσελίδα':'meteo.gr',
                         'Ημερομηνία':date,
                         'Ώρα':time_td.css('td::text').get(),
                         'Θερμοκρασία':tr.css('div.tempcolorcell::text').get(),
-                        'Μποφόρ':tr.css('td.anemosfull').css('tr').css('td::text').get().split()[0],
+                        'Μποφόρ':knots,
                         'Υγρασία':tr.css('td.humidity::text').get().strip()[:-1]
                     }
