@@ -19,8 +19,10 @@ import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -28,6 +30,7 @@ import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea;
+    private static TableView tableView;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         runCmd("mkdir data");
@@ -77,7 +80,14 @@ public class App extends Application {
         msgArea.setMaxWidth(300);
         mainVPane.getChildren().addAll(dataArea, buttonPane,msgArea);
 
-        TableView tableView = new TableView();
+        tableView = new TableView();
+
+        tableView.getColumns().add(new TableColumn<>("Time"));
+        tableView.getColumns().add(new TableColumn<>("k24.net"));
+        tableView.getColumns().add(new TableColumn<>("meteo.gr"));
+        tableView.getColumns().add(new TableColumn<>("okairos.gr"));
+
+        
 
         mainPane.setLeft(mainVPane);
         mainPane.setCenter(tableView);
@@ -90,9 +100,9 @@ public class App extends Application {
         stage.setScene(scene);
         stage.show();
 
-        ObservableMap<Long, Tuple> k24Map = makeMap(AverageBolt.k24Table, null);
-        ObservableMap<Long, Tuple> meteoMap = makeMap(AverageBolt.meteoTable, null);
-        ObservableMap<Long, Tuple> okairosMap = makeMap(AverageBolt.okairosTable, null);
+        ObservableMap<Long, Tuple> k24Map = makeMap(AverageBolt.k24Table, 1);
+        ObservableMap<Long, Tuple> meteoMap = makeMap(AverageBolt.meteoTable, 2);
+        ObservableMap<Long, Tuple> okairosMap = makeMap(AverageBolt.okairosTable, 3);
     }
 
     @Override
@@ -127,15 +137,16 @@ public class App extends Application {
         });
     }
 
-    public static ObservableMap<Long, Tuple> makeMap(Map<Long, Tuple> bind, TextArea to) {
+    public static ObservableMap<Long, Tuple> makeMap(Map<Long, Tuple> bind, int index) {
         ObservableMap<Long, Tuple> map = FXCollections.observableMap(AverageBolt.okairosTable);
         map.addListener(new MapChangeListener<Long, Tuple>() {
             @Override
             public void onChanged(MapChangeListener.Change<? extends Long, ? extends Tuple> change) {
                 if(change.wasAdded()) {
-                    
+                    Tuple tuple = change.getValueAdded();
+                    tableView.getItems().add(index, tuple.getStringByField("time"));
                 } else if(change.wasRemoved()) {
-                    
+                    tableView.getItems().remove(change.getValueRemoved());
                 }
             }
         });
