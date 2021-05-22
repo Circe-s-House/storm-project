@@ -105,25 +105,18 @@ public class App extends Application {
 
         Scene scene = new Scene(mainPane, 1280, 720);
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
-        but1.setOnAction((event) -> {
-            runSpider("k24");
-            msgArea.appendText("Scraped k24");
-        });
-        but2.setOnAction((event) -> {
-            runSpider("meteo");
-            msgArea.appendText("Scraped meteo");
-        });
-        but3.setOnAction((event) -> {
-            runSpider("okairos");
-            msgArea.appendText("Scraped okairos");
-        });
+        but1.setOnAction((event) -> { runSpider("k24"); });
+        but2.setOnAction((event) -> { runSpider("meteo"); });
+        but3.setOnAction((event) -> { runSpider("okairos"); });
 
         stage.setScene(scene);
         stage.show();
 
-        makeThread("k24", 3).start();
-        makeThread("meteo", 3).start();
-        makeThread("okairos", 1).start();
+        spawnThread("k24", 3).start();
+        try { TimeUnit.MILLISECONDS.sleep(50); } catch (InterruptedException e) {}
+        spawnThread("meteo", 3).start();
+        try { TimeUnit.MILLISECONDS.sleep(50); } catch (InterruptedException e) {}
+        spawnThread("okairos", 1).start();
     }
 
     @Override
@@ -136,7 +129,7 @@ public class App extends Application {
 
     public static void runCmd(String cmd) {
         try {
-            Process p = Runtime.getRuntime().exec(cmd);
+            Runtime.getRuntime().exec(cmd);
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
@@ -147,7 +140,7 @@ public class App extends Application {
         msgArea.appendText("Scraped " + site + "\n");
     }
 
-    public static Thread makeThread(String site, int delay) {
+    public static Thread spawnThread(String site, int delay) {
         return new Thread(new Task<Void>() {
             @Override public Void call() {
                 while (true) {
