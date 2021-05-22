@@ -67,13 +67,13 @@ public class App extends Application {
 
         dataArea.setPrefWidth(400);
         Button but1 = new Button("k24");
-        but1.setMinWidth(140);
+        but1.setMinWidth(133);
         but1.setMinHeight(20);
         Button but2 = new Button("meteo");
-        but2.setMinWidth(140);
+        but2.setMinWidth(133);
         but2.setMinHeight(20);
         Button but3 = new Button("okairos");
-        but3.setMinWidth(140);
+        but3.setMinWidth(133);
         but3.setMinHeight(20);
         HBox buttonPane = new HBox();
         buttonPane.getChildren().addAll(but1, but2, but3);
