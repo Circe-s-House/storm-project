@@ -33,9 +33,9 @@ import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea = new TextArea();
-    public static ObservableMap<Long, Tuple> k24Map = makeMap(52);
-    public static ObservableMap<Long, Tuple> meteoMap = makeMap(44);
-    public static ObservableMap<Long, Tuple> okairosMap = makeMap(252 / 3);
+    public static ObservableMap<Long, Tuple> k24Map = makeMap(1000);
+    public static ObservableMap<Long, Tuple> meteoMap = makeMap(1000);
+    public static ObservableMap<Long, Tuple> okairosMap = makeMap(1000);
     private static TableView<List<String>> table = new TableView<>();
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
@@ -174,7 +174,7 @@ public class App extends Application {
             public void onChanged(MapChangeListener.Change<? extends Long, ? extends Tuple> change) {
                 if(change.wasAdded() || change.wasRemoved()) {
                     table.getItems().clear();
-                    for (Map.Entry<Long, Tuple> entry : okairosMap.entrySet()) {
+                    for (Map.Entry<Long, Tuple> entry : meteoMap.entrySet()) {
                         long key = entry.getKey();
                         String datetime = entry.getValue().getStringByField("date");
                         datetime += " " + entry.getValue().getStringByField("time");
@@ -189,13 +189,13 @@ public class App extends Application {
                                 k24Map.get(key).getIntegerByField("temperature").toString() :
                                 "--"));
                         temperature.add(
-                            String.format("%2s",
-                                meteoMap.containsKey(key) ?
-                                meteoMap.get(key).getIntegerByField("temperature").toString() :
-                                "--"));
-                        temperature.add(
                             String.format("%2s",    
                                 entry.getValue().getIntegerByField("temperature").toString()));
+                        temperature.add(
+                            String.format("%2s",
+                                okairosMap.containsKey(key) ?
+                                okairosMap.get(key).getIntegerByField("temperature").toString() :
+                                "--"));
                         row.add(String.join(" ", temperature));
 
                         ArrayList<String> knots = new ArrayList<>();
@@ -206,28 +206,28 @@ public class App extends Application {
                                 "--"));
                         knots.add(
                             String.format("%2s",
-                                meteoMap.containsKey(key) ?
-                                meteoMap.get(key).getIntegerByField("knots").toString() :
-                                "--"));
+                                entry.getValue().getIntegerByField("knots").toString()));
                         knots.add(
                             String.format("%2s",
-                                entry.getValue().getIntegerByField("knots").toString()));
+                                okairosMap.containsKey(key) ?
+                                okairosMap.get(key).getIntegerByField("knots").toString() :
+                                "--"));
                         row.add(String.join(" ", knots));
 
                         ArrayList<String> humidity = new ArrayList<>();
                         humidity.add(
                             String.format("%2s",
                                 k24Map.containsKey(key) ?
-                                k24Map.get(key).getIntegerByField("humidity").toString():
-                                "--"));
-                        humidity.add(
-                            String.format("%2s",
-                                meteoMap.containsKey(key) ?
-                                meteoMap.get(key).getIntegerByField("humidity").toString() :
+                                k24Map.get(key).getIntegerByField("humidity").toString() :
                                 "--"));
                         humidity.add(
                             String.format("%2s",
                                 entry.getValue().getIntegerByField("humidity").toString()));
+                        humidity.add(
+                            String.format("%2s",
+                                okairosMap.containsKey(key) ?
+                                okairosMap.get(key).getIntegerByField("humidity").toString():
+                                "--"));
                         row.add(String.join(" ", humidity));
 
                         table.getItems().add(row);

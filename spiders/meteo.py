@@ -1,4 +1,5 @@
 import scrapy
+from datetime import *
 
 months = ['ΙΑΝΟΥΑΡΙΟΥ', 'ΦΕΒΡΟΥΑΡΙΟΥ', 'ΜΑΡΤΙΟΥ', 'ΑΠΡΙΛΙΟΥ', 'ΜΑΪΟΥ', 'ΙΟΥΝΙΟΥ',
           'ΙΟΥΛΙΟΥ', 'ΑΥΓΟΥΣΤΟΥ', 'ΣΕΠΤΕΜΒΡΙΟΥ', 'ΟΚΤΩΒΡΙΟΥ', 'ΝΟΕΜΒΡΙΟΥ',
@@ -25,10 +26,15 @@ class MeteoSpider(scrapy.Spider):
                     knots = tr.css('td.anemosfull').css('tr').css('td::text').get().split()[0]
                     if knots == "ΑΠΝΟΙΑ":
                         knots = 0
+                    hour = time_td.css('td::text').get()
+                    if hour == '00:00':
+                        parsedDate = datetime.strptime(f'{date} {hour}', '%d/%m %H:%M')
+                        parsedDate += timedelta(days=1)
+                        date = parsedDate.strftime('%d/%m')
                     yield {
                         'Ιστοσελίδα':'meteo.gr',
                         'Ημερομηνία':date,
-                        'Ώρα':time_td.css('td::text').get(),
+                        'Ώρα':hour,
                         'Θερμοκρασία':tr.css('div.tempcolorcell::text').get(),
                         'Μποφόρ':knots,
                         'Υγρασία':tr.css('td.humidity::text').get().strip()[:-1]
