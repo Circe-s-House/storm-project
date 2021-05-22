@@ -65,7 +65,7 @@ public class App extends Application {
     public void start(Stage stage) {
         BorderPane mainPane = new BorderPane();
 
-        dataArea.setPrefWidth(420);
+        dataArea.setPrefWidth(400);
         Button but1 = new Button("k24");
         but1.setMinWidth(140);
         but1.setMinHeight(20);
