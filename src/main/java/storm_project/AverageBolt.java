@@ -3,11 +3,8 @@ package storm_project;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import org.apache.storm.topology.BasicOutputCollector;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -35,7 +32,7 @@ public class AverageBolt extends BaseBasicBolt {
                 Platform.runLater(new Runnable() {
                     @Override public void run() {
                         App.dataArea.appendText(String.format(
-                            "%s, %s, %s, %d, %d, %d\n",
+                            "%s,%s,%s,%d,%d,%d\n",
                             site, date, time, temperature, knots, humidity));
 
                         Date unixDate = null;

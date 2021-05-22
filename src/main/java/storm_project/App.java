@@ -2,8 +2,10 @@ package storm_project;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -15,19 +17,18 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.tuple.Tuple;
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class App extends Application {
@@ -35,7 +36,7 @@ public class App extends Application {
     public static ObservableMap<Long, Tuple> k24Map;
     public static ObservableMap<Long, Tuple> meteoMap;
     public static ObservableMap<Long, Tuple> okairosMap;
-    private static TableView<String> table;
+    private static TableView<List<String>> table;
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         runCmd("mkdir data");
@@ -66,38 +67,61 @@ public class App extends Application {
 
         BorderPane mainPane = new BorderPane();
 
-        VBox mainVPane = new VBox();
         dataArea = new TextArea();
-        dataArea.setMaxWidth(300);
-        dataArea.setMaxHeight(1200);
-        Button but1 = new Button("meteo");
-        but1.setPrefWidth(100);
-        but1.setPrefHeight(20);
-        Button but2 = new Button("okairos");
-        but2.setPrefWidth(100);
-        but2.setPrefHeight(20);
-        Button but3 = new Button("k24");
-        but3.setPrefWidth(100);
-        but3.setPrefHeight(20);
+        dataArea.setPrefWidth(420);
+        Button but1 = new Button("k24");
+        but1.setMinWidth(140);
+        but1.setMinHeight(20);
+        Button but2 = new Button("meteo");
+        but2.setMinWidth(140);
+        but2.setMinHeight(20);
+        Button but3 = new Button("okairos");
+        but3.setMinWidth(140);
+        but3.setMinHeight(20);
         HBox buttonPane = new HBox();
         buttonPane.getChildren().addAll(but1, but2, but3);
         TextArea msgArea = new TextArea();
-        msgArea.setMaxWidth(300);
-        mainVPane.getChildren().addAll(dataArea, buttonPane,msgArea);
+        msgArea.setPrefHeight(150);
 
-        mainPane.setLeft(mainVPane);
+        mainPane.setTop(buttonPane);
+        mainPane.setBottom(msgArea);
+        mainPane.setLeft(dataArea);
 
         table = new TableView<>();
-        table.getColumns().add(new TableColumn<String, String>("time"));
-        table.getColumns().add(new TableColumn<String, String>("k24"));
-        table.getColumns().add(new TableColumn<String, String>("meteo"));
-        table.getColumns().add(new TableColumn<String, String>("okairos"));
+        table.setEditable(false);
+
+        TableColumn<List<String>, String> timeCol = new TableColumn<>("time");
+        timeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(0)));
+        timeCol.setMinWidth(215);
+        table.getColumns().add(timeCol);
+        TableColumn<List<String>, String> cCol = new TableColumn<>("°C");
+        cCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(1)));
+        cCol.setMinWidth(215);
+        table.getColumns().add(cCol);
+        TableColumn<List<String>, String> kCol = new TableColumn<>("knots");
+        kCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(2)));
+        kCol.setMinWidth(215);
+        table.getColumns().add(kCol);
+        TableColumn<List<String>, String> hCol = new TableColumn<>("humidity %");
+        hCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(3)));
+        hCol.setMinWidth(215);
+        table.getColumns().add(hCol);
         mainPane.setCenter(table);
 
-        Scene scene = new Scene(mainPane, 1200, 500);
-        but1.setOnAction((event) -> { runSpider("k24"); });
-        but2.setOnAction((event) -> { runSpider("meteo"); });
-        but3.setOnAction((event) -> { runSpider("okairos"); });
+        Scene scene = new Scene(mainPane, 1280, 720);
+        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        but1.setOnAction((event) -> {
+            runSpider("k24");
+            msgArea.appendText("Scraped https://gr.k24.net/ellada/peloponnisos/kairos-tripoli-66?i=1\n");
+        });
+        but2.setOnAction((event) -> {
+            runSpider("meteo");
+            msgArea.appendText("Scraped https://www.meteo.gr/cf.cfm?city_id=36\n");
+        });
+        but3.setOnAction((event) -> {
+            runSpider("okairos");
+            msgArea.appendText("Scraped https://www.okairos.gr/τρίπολη.html?v=ωριαία\n");
+        });
 
         stage.setScene(scene);
         stage.show();
@@ -122,7 +146,6 @@ public class App extends Application {
     }
 
     public static void runSpider(String site) {
-        runCmd("dd if=/dev/null of=data/" + site + ".csv");
         runCmd("scrapy runspider spiders/" + site + ".py -o data/" + site + ".csv");
     }
 
@@ -154,23 +177,63 @@ public class App extends Application {
             public void onChanged(MapChangeListener.Change<? extends Long, ? extends Tuple> change) {
                 if(change.wasAdded() || change.wasRemoved()) {
                     table.getItems().clear();
-                    for (Map.Entry<Long, Tuple> entry : k24Map.entrySet()) {
+                    for (Map.Entry<Long, Tuple> entry : okairosMap.entrySet()) {
                         long key = entry.getKey();
                         String datetime = entry.getValue().getStringByField("date");
                         datetime += " " + entry.getValue().getStringByField("time");
 
-                        //table.getItems().add(datetime, "-", "-", "-");
-                        // table.getItems().add(entry.getValue().getIntegerByField("temperature").toString());
-                        // if (meteoMap.containsKey(key)) {
-                        //     table.getItems().add(meteoMap.get(key).getIntegerByField("temperature").toString());
-                        // } else {
-                        //     table.getItems().add("-");
-                        // }
-                        // if (okairosMap.containsKey(key)) {
-                        //     table.getItems().add(okairosMap.get(key).getIntegerByField("temperature").toString());
-                        // } else {
-                        //     table.getItems().add("-");
-                        // }
+                        ArrayList<String> row = new ArrayList<>();
+                        row.add(datetime);
+
+                        ArrayList<String> temperature = new ArrayList<>();
+                        temperature.add(
+                            String.format("%2s",
+                                k24Map.containsKey(key) ?
+                                k24Map.get(key).getIntegerByField("temperature").toString() :
+                                "--"));
+                        temperature.add(
+                            String.format("%2s",
+                                meteoMap.containsKey(key) ?
+                                meteoMap.get(key).getIntegerByField("temperature").toString() :
+                                "--"));
+                        temperature.add(
+                            String.format("%2s",    
+                                entry.getValue().getIntegerByField("temperature").toString()));
+                        row.add(String.join(" ", temperature));
+
+                        ArrayList<String> knots = new ArrayList<>();
+                        knots.add(
+                            String.format("%2s",
+                                k24Map.containsKey(key) ?
+                                k24Map.get(key).getIntegerByField("knots").toString() :
+                                "--"));
+                        knots.add(
+                            String.format("%2s",
+                                meteoMap.containsKey(key) ?
+                                meteoMap.get(key).getIntegerByField("knots").toString() :
+                                "--"));
+                        knots.add(
+                            String.format("%2s",
+                                entry.getValue().getIntegerByField("knots").toString()));
+                        row.add(String.join(" ", knots));
+
+                        ArrayList<String> humidity = new ArrayList<>();
+                        humidity.add(
+                            String.format("%2s",
+                                k24Map.containsKey(key) ?
+                                k24Map.get(key).getIntegerByField("humidity").toString():
+                                "--"));
+                        humidity.add(
+                            String.format("%2s",
+                                meteoMap.containsKey(key) ?
+                                meteoMap.get(key).getIntegerByField("humidity").toString() :
+                                "--"));
+                        humidity.add(
+                            String.format("%2s",
+                                entry.getValue().getIntegerByField("humidity").toString()));
+                        row.add(String.join(" ", humidity));
+
+                        table.getItems().add(row);
                     }
                 }
             }
