@@ -33,6 +33,7 @@ import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea = new TextArea();
+    public static TextArea msgArea = new TextArea();
     public static ObservableMap<Long, Tuple> k24Map = makeMap(1000);
     public static ObservableMap<Long, Tuple> meteoMap = makeMap(1000);
     public static ObservableMap<Long, Tuple> okairosMap = makeMap(1000);
@@ -76,7 +77,6 @@ public class App extends Application {
         but3.setMinHeight(20);
         HBox buttonPane = new HBox();
         buttonPane.getChildren().addAll(but1, but2, but3);
-        TextArea msgArea = new TextArea();
         msgArea.setPrefHeight(150);
 
         mainPane.setTop(buttonPane);
@@ -107,15 +107,15 @@ public class App extends Application {
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         but1.setOnAction((event) -> {
             runSpider("k24");
-            msgArea.appendText("Scraped https://gr.k24.net/ellada/peloponnisos/kairos-tripoli-66?i=1\n");
+            msgArea.appendText("Scraped k24");
         });
         but2.setOnAction((event) -> {
             runSpider("meteo");
-            msgArea.appendText("Scraped https://www.meteo.gr/cf.cfm?city_id=36\n");
+            msgArea.appendText("Scraped meteo");
         });
         but3.setOnAction((event) -> {
             runSpider("okairos");
-            msgArea.appendText("Scraped https://www.okairos.gr/τρίπολη.html?v=ωριαία\n");
+            msgArea.appendText("Scraped okairos");
         });
 
         stage.setScene(scene);
@@ -144,6 +144,7 @@ public class App extends Application {
 
     public static void runSpider(String site) {
         runCmd("scrapy runspider spiders/" + site + ".py -o data/" + site + ".csv");
+        msgArea.appendText("Scraped " + site + "\n");
     }
 
     public static Thread makeThread(String site, int delay) {
