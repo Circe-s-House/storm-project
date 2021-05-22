@@ -1,7 +1,7 @@
 import scrapy
 import datetime
 
-months = ['Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου', 'Μάι', 'Ιουνίου',
+months = ['Ιανουαρίου', 'Φεβρουαρίου', 'Μαρτίου', 'Απριλίου', 'Μάι', 'Ιούν',
           'Ιουλίου', 'Αυγούστου', 'Σεπτεμβρίου', 'Οκτωβρίου', 'Νοεμβρίου',
           'Δεκεμβρίου']
 
@@ -15,7 +15,7 @@ class OkairosSpider(scrapy.Spider):
     def parse(self, response):
         page = response.css('div.wnfp')
         i = 0
-        while True:
+        while i < 12:
             h3 = page.css('h3::text')[12+i].get()
             date = h3.split()
             month = months.index(date[2][:-1]) + 1

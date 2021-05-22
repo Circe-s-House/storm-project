@@ -32,13 +32,14 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class App extends Application {
-    public static TextArea dataArea;
-    public static ObservableMap<Long, Tuple> k24Map;
-    public static ObservableMap<Long, Tuple> meteoMap;
-    public static ObservableMap<Long, Tuple> okairosMap;
-    private static TableView<List<String>> table;
+    public static TextArea dataArea = new TextArea();
+    public static ObservableMap<Long, Tuple> k24Map = makeMap(52);
+    public static ObservableMap<Long, Tuple> meteoMap = makeMap(44);
+    public static ObservableMap<Long, Tuple> okairosMap = makeMap(252 / 3);
+    private static TableView<List<String>> table = new TableView<>();
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
+        runCmd("rm -rf data");
         runCmd("mkdir data");
         runCmd("touch data/k24.csv data/meteo.csv data/okairos.csv");
         builder.setSpout("k24Spout", new CSVSpout("data/k24.csv"));
@@ -61,13 +62,8 @@ public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        makeThread("k24", 3).start();
-        makeThread("meteo", 3).start();
-        makeThread("okairos", 1).start();
-
         BorderPane mainPane = new BorderPane();
 
-        dataArea = new TextArea();
         dataArea.setPrefWidth(420);
         Button but1 = new Button("k24");
         but1.setMinWidth(140);
@@ -87,7 +83,6 @@ public class App extends Application {
         mainPane.setBottom(msgArea);
         mainPane.setLeft(dataArea);
 
-        table = new TableView<>();
         table.setEditable(false);
 
         TableColumn<List<String>, String> timeCol = new TableColumn<>("time");
@@ -126,9 +121,9 @@ public class App extends Application {
         stage.setScene(scene);
         stage.show();
 
-        k24Map = makeMap(52);
-        meteoMap = makeMap(44);
-        okairosMap = makeMap(252 / 3);
+        makeThread("k24", 3).start();
+        makeThread("meteo", 3).start();
+        makeThread("okairos", 1).start();
     }
 
     @Override
@@ -141,8 +136,10 @@ public class App extends Application {
 
     public static void runCmd(String cmd) {
         try {
-            Runtime.getRuntime().exec(cmd);
-        } catch (IOException e) {}
+            Process p = Runtime.getRuntime().exec(cmd);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public static void runSpider(String site) {
