@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.tuple.Triple;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.thrift.TException;
@@ -22,22 +23,37 @@ import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 import javafx.concurrent.Task;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Spinner;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 public class App extends Application {
     public static TextArea dataArea = new TextArea();
     public static TextArea msgArea = new TextArea();
-    public static ObservableMap<Long, Tuple> k24Map = makeMap(1000);
-    public static ObservableMap<Long, Tuple> meteoMap = makeMap(1000);
-    public static ObservableMap<Long, Tuple> okairosMap = makeMap(1000);
+    public static Map<Long, Tuple> k24Map = makeTupleMap(1000);
+    public static Map<Long, Tuple> meteoMap = makeTupleMap(1000);
+    public static Map<Long, Tuple> okairosMap = makeTupleMap(1000);
+    public static ObservableMap<Long, Triple<Integer, Integer, Integer>> k24Delta = makeDeltaMap(1000);
+    public static ObservableMap<Long, Triple<Integer, Integer, Integer>> meteoDelta = makeDeltaMap(1000);
+    public static ObservableMap<Long, Triple<Integer, Integer, Integer>> okairosDelta = makeDeltaMap(1000);
     private static TableView<List<String>> table = new TableView<>();
+    private static RadioButton rbAbsolute = new RadioButton("absolute  ");
+    private static Spinner<Integer> spAbsolute = new Spinner<>(0, 100, 0, 1);
+    private static RadioButton rbPercentage = new RadioButton("percentage");
+    private static Spinner<Integer> spPercentage = new Spinner<>(0, 100, 0, 1);
+    private static RadioButton rbc = new RadioButton("°C  ");
+    private static RadioButton rbk = new RadioButton("kn  ");
+    private static RadioButton rbh = new RadioButton("%hmd");
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         runCmd("rm -rf data");
@@ -65,45 +81,94 @@ public class App extends Application {
     public void start(Stage stage) {
         BorderPane mainPane = new BorderPane();
 
-        dataArea.setPrefWidth(400);
+        dataArea.setPrefWidth(315);
         Button but1 = new Button("k24");
-        but1.setMinWidth(133);
+        but1.setMinWidth(105);
         but1.setMinHeight(20);
         Button but2 = new Button("meteo");
-        but2.setMinWidth(133);
+        but2.setMinWidth(105);
         but2.setMinHeight(20);
         Button but3 = new Button("okairos");
-        but3.setMinWidth(133);
+        but3.setMinWidth(105);
         but3.setMinHeight(20);
         HBox buttonPane = new HBox();
         buttonPane.getChildren().addAll(but1, but2, but3);
+
+        msgArea.setPrefWidth(315);
         msgArea.setPrefHeight(150);
 
+        spAbsolute.valueProperty().addListener((obs, oldValue, newValue) -> {
+            updateTable();
+        });
+
+        spPercentage.valueProperty().addListener((obs, oldValue, newValue) -> {
+            updateTable();
+        });
+
+        HBox settingsBox1 = new HBox();
+        settingsBox1.getChildren().addAll(rbAbsolute, spAbsolute);
+        settingsBox1.setSpacing(5);
+
+        HBox settingsBox2 = new HBox();
+        settingsBox2.getChildren().addAll(rbPercentage, spPercentage);
+        settingsBox2.setSpacing(5);
+
+        ToggleGroup tg1 = new ToggleGroup();
+        rbAbsolute.setToggleGroup(tg1);
+        rbPercentage.setToggleGroup(tg1);
+        tg1.selectedToggleProperty().addListener((o, oldVal, newVal) -> {
+            updateTable();
+        });
+
+        VBox absPerBox = new VBox(settingsBox1, settingsBox2);
+        absPerBox.setAlignment(Pos.CENTER);
+        absPerBox.setSpacing(15);
+
+        ToggleGroup tg2 = new ToggleGroup();
+        rbc.setToggleGroup(tg2);
+        rbk.setToggleGroup(tg2);
+        rbh.setToggleGroup(tg2);
+        tg2.selectedToggleProperty().addListener((o, oldVal, newVal) -> {
+            updateTable();
+        });
+
+        VBox settingsBox3 = new VBox(rbc, rbk, rbh);
+        settingsBox3.setAlignment(Pos.CENTER);
+        settingsBox3.setSpacing(15);
+
+        Button butRefresh = new Button("refresh");
+        butRefresh.setOnAction((event) -> {
+            updateTable();
+            msgArea.appendText("Refreshed table\n");
+        });
+
+        HBox settingsBox = new HBox();
+        settingsBox.getChildren().addAll(absPerBox, settingsBox3, butRefresh);
+        settingsBox.setAlignment(Pos.CENTER);
+        settingsBox.setSpacing(50);
+
+        HBox botArea = new HBox(msgArea, settingsBox);
+        botArea.setSpacing(20);
+
         mainPane.setTop(buttonPane);
-        mainPane.setBottom(msgArea);
+        mainPane.setBottom(botArea);
         mainPane.setLeft(dataArea);
 
         table.setEditable(false);
-
-        TableColumn<List<String>, String> timeCol = new TableColumn<>("time");
-        timeCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(0)));
-        timeCol.setMinWidth(215);
-        table.getColumns().add(timeCol);
-        TableColumn<List<String>, String> cCol = new TableColumn<>("°C");
-        cCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(1)));
-        cCol.setMinWidth(215);
-        table.getColumns().add(cCol);
-        TableColumn<List<String>, String> kCol = new TableColumn<>("knots");
-        kCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(2)));
-        kCol.setMinWidth(215);
-        table.getColumns().add(kCol);
-        TableColumn<List<String>, String> hCol = new TableColumn<>("humidity %");
-        hCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(3)));
-        hCol.setMinWidth(215);
-        table.getColumns().add(hCol);
+        table.getColumns().add(makeColumn(0, "time"));
+        table.getColumns().add(makeColumn(1, "filter"));
+        table.getColumns().add(makeColumn(2, "k24 °C"));
+        table.getColumns().add(makeColumn(3, "meteo °C"));
+        table.getColumns().add(makeColumn(4, "okairos °C"));
+        table.getColumns().add(makeColumn(5, "k24 kn"));
+        table.getColumns().add(makeColumn(6, "meteo kn"));
+        table.getColumns().add(makeColumn(7, "okairos kn"));
+        table.getColumns().add(makeColumn(8, "k24 %hmd"));
+        table.getColumns().add(makeColumn(9, "meteo %hmd"));
+        table.getColumns().add(makeColumn(10, "okairos %hmd"));
         mainPane.setCenter(table);
 
-        Scene scene = new Scene(mainPane, 1280, 720);
+        Scene scene = new Scene(mainPane, 1600, 900);
         scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         but1.setOnAction((event) -> { runSpider("k24"); });
         but2.setOnAction((event) -> { runSpider("meteo"); });
@@ -153,82 +218,127 @@ public class App extends Application {
         });
     }
 
-    public static ObservableMap<Long, Tuple> makeMap(int size) {
-        Map<Long, Tuple> map = Collections.synchronizedMap(
-            new LinkedHashMap<Long, Tuple>() {
+    public static TableColumn<List<String>, String> makeColumn(int index, String label) {
+        TableColumn<List<String>, String> col = new TableColumn<>(label);
+        col.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().get(index)));
+        col.setMinWidth(115);
+        return col;
+    }
+
+    public static Map<Long, Tuple> makeTupleMap(int size) {
+        return new LinkedHashMap<Long, Tuple>() {
+            @Override
+            protected boolean removeEldestEntry(final Map.Entry<Long, Tuple> eldest) {
+                return size() > size;
+            }
+        };
+    }
+
+    public static ObservableMap<Long, Triple<Integer, Integer, Integer>> makeDeltaMap(int size) {
+        Map<Long, Triple<Integer, Integer, Integer>> map = Collections.synchronizedMap(
+            new LinkedHashMap<Long, Triple<Integer, Integer, Integer>>() {
                 @Override
-                protected boolean removeEldestEntry(final Map.Entry<Long, Tuple> eldest) {
+                protected boolean removeEldestEntry(final Map.Entry<Long, Triple<Integer, Integer, Integer>> eldest) {
                     return size() > size;
                 }
             }
         );
-        ObservableMap<Long, Tuple> observableMap = FXCollections.observableMap(map);
-        observableMap.addListener(new MapChangeListener<Long, Tuple>() {
+        ObservableMap<Long, Triple<Integer, Integer, Integer>> observableMap = FXCollections.observableMap(map);
+        observableMap.addListener(new MapChangeListener<Long, Triple<Integer, Integer, Integer>>() {
             @Override
-            public void onChanged(MapChangeListener.Change<? extends Long, ? extends Tuple> change) {
-                if(change.wasAdded() || change.wasRemoved()) {
-                    table.getItems().clear();
-                    for (Map.Entry<Long, Tuple> entry : meteoMap.entrySet()) {
-                        long key = entry.getKey();
-                        String datetime = entry.getValue().getStringByField("date");
-                        datetime += " " + entry.getValue().getStringByField("time");
-
-                        ArrayList<String> row = new ArrayList<>();
-                        row.add(datetime);
-
-                        ArrayList<String> temperature = new ArrayList<>();
-                        temperature.add(
-                            String.format("%2s",
-                                k24Map.containsKey(key) ?
-                                k24Map.get(key).getIntegerByField("temperature").toString() :
-                                "--"));
-                        temperature.add(
-                            String.format("%2s",    
-                                entry.getValue().getIntegerByField("temperature").toString()));
-                        temperature.add(
-                            String.format("%2s",
-                                okairosMap.containsKey(key) ?
-                                okairosMap.get(key).getIntegerByField("temperature").toString() :
-                                "--"));
-                        row.add(String.join(" ", temperature));
-
-                        ArrayList<String> knots = new ArrayList<>();
-                        knots.add(
-                            String.format("%2s",
-                                k24Map.containsKey(key) ?
-                                k24Map.get(key).getIntegerByField("knots").toString() :
-                                "--"));
-                        knots.add(
-                            String.format("%2s",
-                                entry.getValue().getIntegerByField("knots").toString()));
-                        knots.add(
-                            String.format("%2s",
-                                okairosMap.containsKey(key) ?
-                                okairosMap.get(key).getIntegerByField("knots").toString() :
-                                "--"));
-                        row.add(String.join(" ", knots));
-
-                        ArrayList<String> humidity = new ArrayList<>();
-                        humidity.add(
-                            String.format("%2s",
-                                k24Map.containsKey(key) ?
-                                k24Map.get(key).getIntegerByField("humidity").toString() :
-                                "--"));
-                        humidity.add(
-                            String.format("%2s",
-                                entry.getValue().getIntegerByField("humidity").toString()));
-                        humidity.add(
-                            String.format("%2s",
-                                okairosMap.containsKey(key) ?
-                                okairosMap.get(key).getIntegerByField("humidity").toString():
-                                "--"));
-                        row.add(String.join(" ", humidity));
-
-                        table.getItems().add(row);
-                    }
+            public void onChanged(MapChangeListener.Change<? extends Long, ? extends Triple<Integer, Integer, Integer>> change) {
+                if (change.wasAdded() || change.wasRemoved()) {
+                    updateTable();
                 }
             }
         });
         return observableMap;
+    }
+
+    public static void updateTable() {
+        table.getItems().clear();
+        for (Map.Entry<Long, Tuple> entry : meteoMap.entrySet()) {
+            long key = entry.getKey();
+
+            String datetime = entry.getValue().getStringByField("date");
+            datetime += " " + entry.getValue().getStringByField("time");
+
+            String mark = "";
+            if (rbc.isSelected()) {
+                List<Integer> temps = new ArrayList<>();
+                if (k24Map.containsKey(key)) { temps.add(k24Map.get(key).getIntegerByField("temperature")); }
+                temps.add(entry.getValue().getIntegerByField("temperature"));
+                if (okairosMap.containsKey(key)) { temps.add(okairosMap.get(key).getIntegerByField("temperature")); }
+                int delta = Collections.max(temps) - Collections.min(temps);
+                if (rbAbsolute.isSelected()) {
+                    if (delta >= spAbsolute.getValue()) {
+                        mark = "*";
+                    }
+                } else if (rbPercentage.isSelected()) {
+                    if (delta / (double) Collections.max(temps) >= spPercentage.getValue() / 100.0) {
+                        mark = "*";
+                    }
+                }
+            } else if (rbk.isSelected()) {
+                List<Integer> knots = new ArrayList<>();
+                if (k24Map.containsKey(key)) { knots.add(k24Map.get(key).getIntegerByField("knots")); }
+                knots.add(entry.getValue().getIntegerByField("knots"));
+                if (okairosMap.containsKey(key)) { knots.add(okairosMap.get(key).getIntegerByField("knots")); }
+                int delta = Collections.max(knots) - Collections.min(knots);
+                if (delta >= spAbsolute.getValue()) {
+                    mark = "*";
+                } else if (rbPercentage.isSelected()) {
+                    if (delta / (double) Collections.max(knots) >= spPercentage.getValue() / 100.0) {
+                        mark = "*";
+                    }
+                }
+            } else if (rbh.isSelected()) {
+                List<Integer> hums = new ArrayList<>();
+                if (k24Map.containsKey(key)) { hums.add(k24Map.get(key).getIntegerByField("humidity")); }
+                hums.add(entry.getValue().getIntegerByField("humidity"));
+                if (okairosMap.containsKey(key)) { hums.add(okairosMap.get(key).getIntegerByField("humidity")); }
+                int delta = Collections.max(hums) - Collections.min(hums);
+                if (delta >= spAbsolute.getValue()) {
+                    mark = "*";
+                } else if (rbPercentage.isSelected()) {
+                    if (delta / (double) Collections.max(hums) >= spPercentage.getValue() / 100.0) {
+                        mark = "*";
+                    }
+                }
+            }
+
+            ArrayList<String> row = new ArrayList<>();
+            row.add(datetime);
+            row.add(mark);
+            row.add(String.format("%-8s",
+                (k24Map.containsKey(key) ? k24Map.get(key).getIntegerByField("temperature").toString() : "--") +
+                (k24Delta.containsKey(key) ? String.format(" (%+02d)", k24Delta.get(key).getLeft()) : "")));
+            row.add(String.format("%-8s",
+                entry.getValue().getIntegerByField("temperature").toString() +
+                (meteoDelta.containsKey(key) ? String.format(" (%+02d)", meteoDelta.get(key).getLeft()) : "")));
+            row.add(String.format("%-8s",
+                (okairosMap.containsKey(key) ? okairosMap.get(key).getIntegerByField("temperature").toString() : "--") +
+                (okairosDelta.containsKey(key) ? String.format(" (%+02d)", okairosDelta.get(key).getLeft()) : "")));
+            row.add(String.format("%-8s",
+                (k24Map.containsKey(key) ? k24Map.get(key).getIntegerByField("knots").toString() : "--") +
+                (k24Delta.containsKey(key) ? String.format(" (%+02d)", k24Delta.get(key).getMiddle()) : "")));
+            row.add(String.format("%-8s",
+                entry.getValue().getIntegerByField("knots").toString() +
+                (meteoDelta.containsKey(key) ? String.format(" (%+02d)", meteoDelta.get(key).getMiddle()) : "")));
+            row.add(String.format("%-8s",
+                (okairosMap.containsKey(key) ? okairosMap.get(key).getIntegerByField("knots").toString() : "--")) +
+                (okairosDelta.containsKey(key) ? String.format(" (%+02d)", okairosDelta.get(key).getMiddle()) : ""));
+            row.add(String.format("%-8s",
+                (k24Map.containsKey(key) ? k24Map.get(key).getIntegerByField("humidity").toString() : "--") +
+                (k24Delta.containsKey(key) ? String.format(" (%+02d)", k24Delta.get(key).getRight()) : "")));
+            row.add(String.format("%-8s",
+                entry.getValue().getIntegerByField("humidity").toString() +
+                (meteoDelta.containsKey(key) ? String.format(" (%+02d)", meteoDelta.get(key).getRight()) : "")));
+            row.add(String.format("%-8s",
+                (okairosMap.containsKey(key) ? okairosMap.get(key).getIntegerByField("humidity").toString(): "--") +
+                (okairosDelta.containsKey(key) ? String.format(" (%+d)", okairosDelta.get(key).getRight()) : "")));
+
+            table.getItems().add(row);
+        }
     }
 }

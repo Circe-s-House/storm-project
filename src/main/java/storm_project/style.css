@@ -1,4 +1,8 @@
 .root{
-    -fx-font-size: 12pt;
+    -fx-font-size: 11pt;
     -fx-font-family: "monospace";
+}
+
+.table-column {
+    -fx-alignment: center;
 }
