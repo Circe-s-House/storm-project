@@ -170,7 +170,6 @@ public class App extends Application {
         mainPane.setCenter(table);
 
         Scene scene = new Scene(mainPane, 1600, 900);
-        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         but1.setOnAction((event) -> { runSpider("k24"); });
         but2.setOnAction((event) -> { runSpider("meteo"); });
         but3.setOnAction((event) -> { runSpider("okairos"); });
