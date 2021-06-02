@@ -54,6 +54,7 @@ public class App extends Application {
     private static RadioButton rbc = new RadioButton("°C  ");
     private static RadioButton rbk = new RadioButton("kn  ");
     private static RadioButton rbh = new RadioButton("%hmd");
+
     public static void main(String[] args) throws FileNotFoundException, IOException, TException, Exception {
         TopologyBuilder builder = new TopologyBuilder();
         runCmd("rm -rf data");
